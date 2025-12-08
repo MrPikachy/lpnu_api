@@ -5,8 +5,7 @@ import os
 
 app = Flask(__name__)
 
-
-# --- ВСТАВ СЮДИ ТУ САМУ ФУНКЦІЮ ПАРСИНГУ, ЩО МИ ВИПРАВИЛИ ---
+# --- ФУНКЦІЯ ПАРСИНГУ ---
 def parse_html_schedule(html_text):
     soup = BeautifulSoup(html_text, 'html.parser')
     schedule = []
@@ -36,37 +35,29 @@ def parse_html_schedule(html_text):
                 full_text = content_block.get_text(separator='|', strip=True)
                 parts = [p.strip() for p in full_text.split('|') if p.strip()]
                 if not parts: continue
-
+                
                 subject = parts[0]
                 text_lower = full_text.lower()
                 subgroup = 0
-                if 'sub_1' in elem_id:
-                    subgroup = 1
-                elif 'sub_2' in elem_id:
-                    subgroup = 2
-
+                if 'sub_1' in elem_id: subgroup = 1
+                elif 'sub_2' in elem_id: subgroup = 2
+                
                 week_type = 'обидва'
-                if 'chys' in elem_id:
-                    week_type = 'чисельник'
-                elif 'znam' in elem_id:
-                    week_type = 'знаменник'
-
+                if 'chys' in elem_id: week_type = 'чисельник'
+                elif 'znam' in elem_id: week_type = 'знаменник'
+                
                 subject_type = 'Інше'
-                if 'лекц' in text_lower:
-                    subject_type = 'Лекція'
-                elif 'практ' in text_lower:
-                    subject_type = 'Практична'
-                elif 'лаб' in text_lower:
-                    subject_type = 'Лабораторна'
-                elif 'екзам' in text_lower:
-                    subject_type = 'Екзамен'
-
+                if 'лекц' in text_lower: subject_type = 'Лекція'
+                elif 'практ' in text_lower: subject_type = 'Практична'
+                elif 'лаб' in text_lower: subject_type = 'Лабораторна'
+                elif 'екзам' in text_lower: subject_type = 'Екзамен'
+                
                 location = ''
                 for p in parts:
                     if any(x in p.lower() for x in ['н.к.', 'корп', 'ауд']):
                         location = p
                         break
-
+                
                 start_t, end_t = lesson_times_map.get(current_lesson_num, ('00:00', '00:00'))
                 schedule.append({
                     'weekday': current_weekday, 'start_time': start_t, 'end_time': end_t,
@@ -75,36 +66,31 @@ def parse_html_schedule(html_text):
                 })
     return schedule
 
-
-# -----------------------------------------------------------
-
+# --- API ---
 @app.route('/')
 def home():
     return jsonify({"status": "API is running. Use /api/schedule?group=GROUP_NAME"})
-
 
 @app.route('/api/schedule')
 def get_schedule():
     group = request.args.get('group')
     if not group:
         return jsonify({"error": "Missing 'group' parameter"}), 400
-
+    
     try:
         import urllib.parse
         encoded_group = urllib.parse.quote(group.strip())
         url = f"https://student.lpnu.ua/students_schedule?studygroup_abbrname={encoded_group}&semestr=1"
-
-        # Render має вільний інтернет, він завантажить це без проблем
+        
         r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
         if r.status_code != 200:
             return jsonify({"error": "LPNU site unavailable"}), 502
-
+            
         data = parse_html_schedule(r.text)
         return jsonify(data)
-
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
