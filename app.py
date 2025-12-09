@@ -1,21 +1,22 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, render_template
 import requests
 from bs4 import BeautifulSoup
 import os
+from pathlib import Path
 
 app = Flask(__name__)
 
-
+# --- ГОЛОВНА СТОРІНКА (API status) ---
 @app.route('/')
-def documentation():
-    return """
-    <h1>LPNU Schedule API</h1>
-    <p>This is a public API for retrieving schedule data.</p>
-    <p><strong>Hostname:</strong> lpnu-api-py6o.onrender.com</p>
-    <p><strong>Status:</strong> Open to the public.</p>
-    <p>Documentation endpoint required for PythonAnywhere allowlist.</p>
-    """
-    
+def home():
+    return jsonify({
+        "status": "API is running",
+        "usage": "Use /api/schedule?group=GROUP_NAME",
+        "docs_ui": "/docs/",
+        "openapi_yaml": "/openapi.yaml",
+        "openapi_json": "/openapi.json"
+    })
+
 # --- ФУНКЦІЯ ПАРСИНГУ ---
 def parse_html_schedule(html_text):
     soup = BeautifulSoup(html_text, 'html.parser')
@@ -26,7 +27,8 @@ def parse_html_schedule(html_text):
         '7': ('19:20', '20:55'), '8': ('21:00', '22:35')
     }
     content_div = soup.find('div', {'class': 'view-content'})
-    if not content_div: return []
+    if not content_div:
+        return []
 
     current_weekday = None
     current_lesson_num = "1"
@@ -45,66 +47,98 @@ def parse_html_schedule(html_text):
                 elem_id = parent.get('id', '') if parent else ''
                 full_text = content_block.get_text(separator='|', strip=True)
                 parts = [p.strip() for p in full_text.split('|') if p.strip()]
-                if not parts: continue
-                
+                if not parts:
+                    continue
+
                 subject = parts[0]
                 text_lower = full_text.lower()
                 subgroup = 0
-                if 'sub_1' in elem_id: subgroup = 1
-                elif 'sub_2' in elem_id: subgroup = 2
-                
+                if 'sub_1' in elem_id:
+                    subgroup = 1
+                elif 'sub_2' in elem_id:
+                    subgroup = 2
+
                 week_type = 'обидва'
-                if 'chys' in elem_id: week_type = 'чисельник'
-                elif 'znam' in elem_id: week_type = 'знаменник'
-                
+                if 'chys' in elem_id:
+                    week_type = 'чисельник'
+                elif 'znam' in elem_id:
+                    week_type = 'знаменник'
+
                 subject_type = 'Інше'
-                if 'лекц' in text_lower: subject_type = 'Лекція'
-                elif 'практ' in text_lower: subject_type = 'Практична'
-                elif 'лаб' in text_lower: subject_type = 'Лабораторна'
-                elif 'екзам' in text_lower: subject_type = 'Екзамен'
-                
+                if 'лекц' in text_lower:
+                    subject_type = 'Лекція'
+                elif 'практ' in text_lower:
+                    subject_type = 'Практична'
+                elif 'лаб' in text_lower:
+                    subject_type = 'Лабораторна'
+                elif 'екзам' in text_lower:
+                    subject_type = 'Екзамен'
+
                 location = ''
                 for p in parts:
                     if any(x in p.lower() for x in ['н.к.', 'корп', 'ауд']):
                         location = p
                         break
-                
+
                 start_t, end_t = lesson_times_map.get(current_lesson_num, ('00:00', '00:00'))
                 schedule.append({
-                    'weekday': current_weekday, 'start_time': start_t, 'end_time': end_t,
-                    'subject': subject, 'subject_type': subject_type,
-                    'location': location, 'subgroup': subgroup, 'week_type': week_type
+                    'weekday': current_weekday,
+                    'start_time': start_t,
+                    'end_time': end_t,
+                    'subject': subject,
+                    'subject_type': subject_type,
+                    'location': location,
+                    'subgroup': subgroup,
+                    'week_type': week_type
                 })
     return schedule
 
-# --- API ---
-@app.route('/')
-def home():
-    return jsonify({"status": "API is running. Use /api/schedule?group=GROUP_NAME"})
-
+# --- API ENDPOINT: /api/schedule ---
 @app.route('/api/schedule')
 def get_schedule():
     group = request.args.get('group')
     if not group:
         return jsonify({"error": "Missing 'group' parameter"}), 400
-    
+
     try:
         import urllib.parse
         encoded_group = urllib.parse.quote(group.strip())
         url = f"https://student.lpnu.ua/students_schedule?studygroup_abbrname={encoded_group}&semestr=1"
-        
+
         r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
         if r.status_code != 200:
             return jsonify({"error": "LPNU site unavailable"}), 502
-            
+
         data = parse_html_schedule(r.text)
         return jsonify(data)
-        
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# --- DOCS ROUTES: serve static openapi files and ReDoc UI ---
+def _docs_dir():
+    # docs folder at repo root: <project-root>/docs
+    # app.root_path is path to the folder containing this app.py
+    return os.path.join(app.root_path, 'docs')
+
+@app.route('/openapi.yaml')
+def openapi_yaml():
+    docs_dir = _docs_dir()
+    if not os.path.exists(os.path.join(docs_dir, 'openapi.yaml')):
+        return "OpenAPI YAML not found. Place docs/openapi.yaml in the repo.", 500
+    return send_from_directory(docs_dir, 'openapi.yaml')
+
+@app.route('/openapi.json')
+def openapi_json():
+    docs_dir = _docs_dir()
+    if not os.path.exists(os.path.join(docs_dir, 'openapi.json')):
+        return "OpenAPI JSON not found. Place docs/openapi.json in the repo.", 500
+    return send_from_directory(docs_dir, 'openapi.json')
+
+@app.route('/docs/')
+def redoc_ui():
+    # renders templates/redoc.html which loads /openapi.yaml
+    return render_template('redoc.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
-
-
-
