@@ -39,7 +39,7 @@ def home():
         </ul>
 
         <h3>Usage Example</h3>
-        <code>GET /api/schedule?group=KN-101</code>
+        <code>GET /api/schedule?group=ПП-12</code>
     </body>
     </html>
     """
@@ -173,3 +173,4 @@ def redoc_ui():
 if __name__ == '__main__':
 
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+
