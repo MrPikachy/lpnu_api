@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 
 
-@app.route('/')
+@app.route('/docs')
 def documentation():
     return """
     <h1>LPNU Schedule API</h1>
@@ -105,4 +105,5 @@ def get_schedule():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+
 
