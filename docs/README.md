@@ -22,8 +22,9 @@ The API is fully documented using OpenAPI 3.0 standards.
 **Endpoint:** `/api/schedule`
 
 **Parameters:**
-- `group`: The name of the student group (e.g., `ІП-21`)
+- `group`: The name of the student group (e.g., `ПП-12`)
 
 **Example Request:**
 ```bash
-curl "[https://lpnu-api-py6o.onrender.com/api/schedule?group=KN-101](https://lpnu-api-py6o.onrender.com/api/schedule?group=KN-101)"
+
+curl "[https://lpnu-api-py6o.onrender.com/api/schedule?group=KN-101](https://lpnu-api-py6o.onrender.com/api/schedule?group=ПП-12)"
