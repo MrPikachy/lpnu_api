@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "lpnu_api",
-    "version": "0.1.0",
-    "description": "API для отримання розкладу зі студентського сайту ЛНУ. Публічний spec, потрібен для allowlist на PythonAnywhere."
+    "title": "LPNU Schedule API",
+    "version": "1.0.0",
+    "description": "Public API for retrieving student schedules from Lviv Polytechnic National University. Open access."
   },
   "servers": [
     {
@@ -13,13 +13,13 @@
   "paths": {
     "/api/schedule": {
       "get": {
-        "summary": "Отримати розклад групи",
-        "description": "Повертає масив елементів розкладу для вказаної групи (semester=1).",
+        "summary": "Get Group Schedule",
+        "description": "Returns a list of schedule items for the specified student group (semester=1).",
         "parameters": [
           {
             "name": "group",
             "in": "query",
-            "description": "Назва групи (наприклад: ІП-21)",
+            "description": "Group name (e.g., KN-101)",
             "required": true,
             "schema": {
               "type": "string"
@@ -28,7 +28,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Успішна відповідь — список зайнять",
+            "description": "Successful response - List of classes",
             "content": {
               "application/json": {
                 "schema": {
@@ -41,7 +41,7 @@
             }
           },
           "400": {
-            "description": "Помилка клієнта (відсутній параметр)",
+            "description": "Client error (Missing parameter)",
             "content": {
               "application/json": {
                 "schema": {
@@ -51,7 +51,7 @@
             }
           },
           "502": {
-            "description": "LPNU site unavailable",
+            "description": "Upstream error (LPNU site unavailable)",
             "content": {
               "application/json": {
                 "schema": {
@@ -61,7 +61,7 @@
             }
           },
           "500": {
-            "description": "Внутрішня помилка сервера",
+            "description": "Internal Server Error",
             "content": {
               "application/json": {
                 "schema": {

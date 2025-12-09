@@ -2,22 +2,50 @@ from flask import Flask, request, jsonify, send_from_directory, render_template
 import requests
 from bs4 import BeautifulSoup
 import os
-from pathlib import Path
+import urllib.parse
 
 app = Flask(__name__)
 
-# --- ГОЛОВНА СТОРІНКА (API status) ---
+
+# --- MAIN PAGE (Documentation Landing) ---
 @app.route('/')
 def home():
-    return jsonify({
-        "status": "API is running",
-        "usage": "Use /api/schedule?group=GROUP_NAME",
-        "docs_ui": "/docs/",
-        "openapi_yaml": "/openapi.yaml",
-        "openapi_json": "/openapi.json"
-    })
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LPNU Schedule API</title>
+        <style>
+            body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+            h1 { color: #333; }
+            .badge { background: #28a745; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; }
+            code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; }
+        </style>
+    </head>
+    <body>
+        <h1>LPNU Schedule API</h1>
+        <p><span class="badge">Public API</span> <span class="badge">Open Access</span></p>
 
-# --- ФУНКЦІЯ ПАРСИНГУ ---
+        <p><strong>Host:</strong> lpnu-api-py6o.onrender.com</p>
+        <p>This is a public API designed to retrieve schedule data from the Lviv Polytechnic National University student portal.</p>
+
+        <h3>Documentation & Spec</h3>
+        <ul>
+            <li><a href="/docs/">Interactive Documentation (ReDoc)</a></li>
+            <li><a href="/openapi.json">OpenAPI Specification (JSON)</a></li>
+            <li><a href="/openapi.yaml">OpenAPI Specification (YAML)</a></li>
+        </ul>
+
+        <h3>Usage Example</h3>
+        <code>GET /api/schedule?group=KN-101</code>
+    </body>
+    </html>
+    """
+
+
+# --- PARSING FUNCTION ---
 def parse_html_schedule(html_text):
     soup = BeautifulSoup(html_text, 'html.parser')
     schedule = []
@@ -93,6 +121,7 @@ def parse_html_schedule(html_text):
                 })
     return schedule
 
+
 # --- API ENDPOINT: /api/schedule ---
 @app.route('/api/schedule')
 def get_schedule():
@@ -101,7 +130,6 @@ def get_schedule():
         return jsonify({"error": "Missing 'group' parameter"}), 400
 
     try:
-        import urllib.parse
         encoded_group = urllib.parse.quote(group.strip())
         url = f"https://student.lpnu.ua/students_schedule?studygroup_abbrname={encoded_group}&semestr=1"
 
@@ -115,30 +143,32 @@ def get_schedule():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# --- DOCS ROUTES: serve static openapi files and ReDoc UI ---
+
+# --- DOCS ROUTES ---
 def _docs_dir():
-    # docs folder at repo root: <project-root>/docs
-    # app.root_path is path to the folder containing this app.py
     return os.path.join(app.root_path, 'docs')
+
 
 @app.route('/openapi.yaml')
 def openapi_yaml():
     docs_dir = _docs_dir()
     if not os.path.exists(os.path.join(docs_dir, 'openapi.yaml')):
-        return "OpenAPI YAML not found. Place docs/openapi.yaml in the repo.", 500
+        return "OpenAPI YAML not found.", 404
     return send_from_directory(docs_dir, 'openapi.yaml')
+
 
 @app.route('/openapi.json')
 def openapi_json():
     docs_dir = _docs_dir()
     if not os.path.exists(os.path.join(docs_dir, 'openapi.json')):
-        return "OpenAPI JSON not found. Place docs/openapi.json in the repo.", 500
+        return "OpenAPI JSON not found.", 404
     return send_from_directory(docs_dir, 'openapi.json')
+
 
 @app.route('/docs/')
 def redoc_ui():
-    # renders templates/redoc.html which loads /openapi.yaml
     return render_template('redoc.html')
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
