@@ -1,13 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
+    <title>LPNU API Docs</title>
     <meta charset="utf-8"/>
-    <title>lpnu_api — API docs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style> body { margin: 0; padding: 0; } </style>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+    <style>
+      body { margin: 0; padding: 0; }
+    </style>
   </head>
   <body>
-    <redoc spec-url="/openapi.yaml"></redoc>
-    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
+    <div id="redoc-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/redoc@2.0.0-rc.77/bundles/redoc.standalone.js"> </script>
+
+    <script>
+      Redoc.init(
+        '/openapi.yaml',
+        {
+          scrollYOffset: 50
+        },
+        document.getElementById('redoc-container')
+      );
+    </script>
   </body>
 </html>

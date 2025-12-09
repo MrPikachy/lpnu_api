@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import os
 import urllib.parse
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__)
 
 
 # --- MAIN PAGE (Documentation Landing) ---
@@ -39,7 +39,7 @@ def home():
         </ul>
 
         <h3>Usage Example</h3>
-        <code>GET /api/schedule?group=ПП-12</code>
+        <code>GET /api/schedule?group=KN-101</code>
     </body>
     </html>
     """
@@ -171,6 +171,4 @@ def redoc_ui():
 
 
 if __name__ == '__main__':
-
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
-
