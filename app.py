@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import os
 import urllib.parse
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 
 
 # --- MAIN PAGE (Documentation Landing) ---
@@ -171,4 +171,5 @@ def redoc_ui():
 
 
 if __name__ == '__main__':
+
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
