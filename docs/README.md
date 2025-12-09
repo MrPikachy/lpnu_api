@@ -1,40 +1,32 @@
-```markdown
-# Документація API (lpnu_api)
+# LPNU Schedule API
 
-Ця папка містить OpenAPI spec у YAML та JSON форматах і коротку інструкцію.
+A public REST API designed to retrieve schedule data for LPNU (Lviv Polytechnic National University). This service allows developers to integrate university schedule information into their applications.
 
-Файли:
-- openapi.yaml — OpenAPI 3.0 (YAML)
-- openapi.json — OpenAPI 3.0 (JSON)
-- README.md — цей файл
+## 🌐 Public Access & Hosting
 
-Як це працює
-1. Я додав маршрути у ваш app.py:
-   - GET /openapi.yaml — повертає YAML
-   - GET /openapi.json — повертає JSON
-   - GET /docs/ — ReDoc UI (людям зручно переглядати)
+This API is publicly hosted and open for general use.
 
-2. Після пуша на репозиторій Render автоматично перезавантажить сервіс.
-   Перевірте:
-   - https://lpnu-api-py6o.onrender.com/openapi.yaml
-   - https://lpnu-api-py6o.onrender.com/openapi.json
-   - https://lpnu-api-py6o.onrender.com/docs/
+- **Base URL:** `https://lpnu-api-py6o.onrender.com`
+- **Status:** ✅ Public / Open Access
+- **Hosting Provider:** Render
 
-Що віддати PythonAnywhere
-- Рекомендую надати їм пряме посилання на YAML:
-  https://lpnu-api-py6o.onrender.com/openapi.yaml
-- Для людського перегляду додайте також:
-  https://lpnu-api-py6o.onrender.com/docs/
+## 📚 Documentation
 
-Як оновлювати spec
-- Якщо зміните /api/schedule або додасте нові маршрути — оновіть docs/openapi.yaml та docs/openapi.json.
-- Можна автоматизувати генерацію spec (flask-apispec, apispec) та на CI перезаписувати файли у docs/.
+The API is fully documented using OpenAPI 3.0 standards. You can access the interactive documentation and specifications via the following endpoints:
 
-Поради безпеки
-- Файли документації повинні бути публічними, якщо PythonAnywhere має отримати їх за HTTP.
-- Якщо ви не хочете робити їх постійно публічними — тимчасово дозвольте доступ або дайте PythonAnywhere IP для читання.
+- **Interactive Documentation (ReDoc):**
+  [https://lpnu-api-py6o.onrender.com/docs/](https://lpnu-api-py6o.onrender.com/docs/)
 
-Якщо потрібно, можу:
-- Згенерувати OpenAPI автоматично з коду (приклад з flask-apispec).
-- Зробити PR у ваш репозиторій (повідомте owner/repo і гілку).
-```
+- **OpenAPI Specification (YAML):**
+  [https://lpnu-api-py6o.onrender.com/openapi.yaml](https://lpnu-api-py6o.onrender.com/openapi.yaml)
+
+- **OpenAPI Specification (JSON):**
+  [https://lpnu-api-py6o.onrender.com/openapi.json](https://lpnu-api-py6o.onrender.com/openapi.json)
+
+## 🚀 Usage
+
+You can make GET requests to the available endpoints to fetch schedule data.
+
+### Example Request
+```bash
+curl -X GET [https://lpnu-api-py6o.onrender.com/api/schedule?group=KN-101](https://lpnu-api-py6o.onrender.com/api/schedule?group=KN-101)
