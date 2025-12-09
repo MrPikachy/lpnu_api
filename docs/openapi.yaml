@@ -1,0 +1,81 @@
+openapi: "3.0.3"
+info:
+  title: "LPNU Schedule API"
+  version: "1.0.0"
+  description: "Public API for retrieving student schedules from Lviv Polytechnic National University. Open access."
+servers:
+  - url: "https://lpnu-api-py6o.onrender.com"
+paths:
+  /api/schedule:
+    get:
+      summary: "Get Group Schedule"
+      description: "Returns a list of schedule items for the specified student group (semester=1)."
+      parameters:
+        - name: "group"
+          in: "query"
+          description: "Group name (e.g., KN-101)"
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Successful response - List of classes"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduleItem"
+        "400":
+          description: "Client error (Missing parameter)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: "Upstream error (LPNU site unavailable)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    ScheduleItem:
+      type: object
+      properties:
+        weekday:
+          type: string
+          example: "Понеділок"
+        start_time:
+          type: string
+          example: "08:30"
+        end_time:
+          type: string
+          example: "10:05"
+        subject:
+          type: string
+          example: "Математика"
+        subject_type:
+          type: string
+          example: "Лекція"
+        location:
+          type: string
+          example: "н.к., ауд. 101"
+        subgroup:
+          type: integer
+          example: 0
+        week_type:
+          type: string
+          example: "обидва"
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Missing 'group' parameter"
