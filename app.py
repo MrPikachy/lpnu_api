@@ -5,6 +5,17 @@ import os
 
 app = Flask(__name__)
 
+
+@app.route('/')
+def documentation():
+    return """
+    <h1>LPNU Schedule API</h1>
+    <p>This is a public API for retrieving schedule data.</p>
+    <p><strong>Hostname:</strong> lpnu-api-py6o.onrender.com</p>
+    <p><strong>Status:</strong> Open to the public.</p>
+    <p>Documentation endpoint required for PythonAnywhere allowlist.</p>
+    """
+    
 # --- ФУНКЦІЯ ПАРСИНГУ ---
 def parse_html_schedule(html_text):
     soup = BeautifulSoup(html_text, 'html.parser')
@@ -94,3 +105,4 @@ def get_schedule():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+
